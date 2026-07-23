@@ -1,21 +1,15 @@
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using StudentRegistrationWebApp.Models;
 
-namespace StudentRegistrationWebApp.Data
+namespace EventManagementWebApp.Data
 {
     public static class DbInitializer
     {
-        public static async Task InitializeAsync(
-            ApplicationDbContext context,
-            UserManager<ApplicationUser> userManager,
+        // Seeds the "Admin" / "User" roles and the manually-created Administrator account
+        public static async Task SeedRolesAndAdminAsync(
+            UserManager<IdentityUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
-            // ═══ Ensure database is created ═══
-            await context.Database.MigrateAsync();
-
-            // ═══ Create Roles ═══
-            string[] roles = { "Admin", "Student" };
+            string[] roles = { "Admin", "User" };
             foreach (var role in roles)
             {
                 if (!await roleManager.RoleExistsAsync(role))
@@ -24,20 +18,17 @@ namespace StudentRegistrationWebApp.Data
                 }
             }
 
-            // ═══ Create Administrator Account ═══
-            string adminEmail = "admin@studentapp.com";
+            string adminEmail = "admin@eventapp.com";
             string adminPassword = "Admin@123";
 
             var adminUser = await userManager.FindByEmailAsync(adminEmail);
             if (adminUser == null)
             {
-                adminUser = new ApplicationUser
+                adminUser = new IdentityUser
                 {
                     UserName = adminEmail,
                     Email = adminEmail,
-                    FullName = "System Administrator",
-                    EmailConfirmed = true,
-                    RegisteredOn = DateTime.Now
+                    EmailConfirmed = true
                 };
 
                 var result = await userManager.CreateAsync(adminUser, adminPassword);
@@ -49,57 +40,6 @@ namespace StudentRegistrationWebApp.Data
             else if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
             {
                 await userManager.AddToRoleAsync(adminUser, "Admin");
-            }
-
-            // ═══ Seed Sample Courses ═══
-            if (!context.Courses.Any())
-            {
-                var courses = new Course[]
-                {
-                    new Course
-                    {
-                        CourseName = "Introduction to Computer Science",
-                        CourseCode = "CS101",
-                        Description = "Fundamentals of computer science, algorithms, and programming.",
-                        Credits = 3,
-                        Instructor = "Dr. Smith"
-                    },
-                    new Course
-                    {
-                        CourseName = "Database Management Systems",
-                        CourseCode = "CS201",
-                        Description = "Relational databases, SQL, normalization, and transaction management.",
-                        Credits = 4,
-                        Instructor = "Dr. Johnson"
-                    },
-                    new Course
-                    {
-                        CourseName = "Web Application Development",
-                        CourseCode = "CS301",
-                        Description = "ASP.NET Core MVC, Entity Framework, and modern web development.",
-                        Credits = 4,
-                        Instructor = "Prof. Williams"
-                    },
-                    new Course
-                    {
-                        CourseName = "Data Structures and Algorithms",
-                        CourseCode = "CS202",
-                        Description = "Trees, graphs, sorting, searching, and algorithm analysis.",
-                        Credits = 4,
-                        Instructor = "Dr. Brown"
-                    },
-                    new Course
-                    {
-                        CourseName = "Software Engineering",
-                        CourseCode = "CS401",
-                        Description = "Software development lifecycle, design patterns, and project management.",
-                        Credits = 3,
-                        Instructor = "Prof. Davis"
-                    }
-                };
-
-                context.Courses.AddRange(courses);
-                await context.SaveChangesAsync();
             }
         }
     }
