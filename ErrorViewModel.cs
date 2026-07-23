@@ -1,4 +1,4 @@
-namespace StudentRegistrationWebApp.Models
+namespace EventManagementWebApp.Models
 {
     public class ErrorViewModel
     {
